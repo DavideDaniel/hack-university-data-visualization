@@ -243,3 +243,24 @@ a {
 @media screen and (max-width: 42em) {
   .site-footer {
     font-size: 0.9rem; } }
+
+    #content {
+      width: 100%;
+      height: 400px;
+      background-color: #F2F9FC;
+    }
+    .axis path, .axis line {
+      fill: none;
+      stroke: #000;
+      stroke-width: 1px;
+      shape-rendering: crispEdges;
+    }
+    g {
+      font-family: Lato;
+      font-size: 11px;
+    }
+    .line {
+      stroke: tomato;
+      stroke-width: 1px;
+      fill: none;
+    }
