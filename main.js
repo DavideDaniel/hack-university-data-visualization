@@ -6,9 +6,9 @@ var margin = {
     left: 70
   }
   // defining width and height
-  debugger
-var winWidth = $('#content').width();
 
+var winWidth = $('#content')
+  .width();
 var width = winWidth - margin.left - margin.right;
 var height = 400 - margin.top - margin.bottom;
 // defining the date formatting function
@@ -57,6 +57,17 @@ function fetchData(id) {
   })
   return fetchedData;
 }
+
+function fetchState() {
+  console.log('returning data for all of OR');
+  var url = 'http://54.213.83.132/hackoregon/http/state_sum_by_date/_/';
+  var fetchedData = new Promise(function (resolve, reject) {
+    $.getJSON(url, function (json) {
+      resolve(json);
+    })
+  })
+  return fetchedData;
+}
 // sorting function for time series
 function sortByDates(a, b) {
   return a.date - b.date;
@@ -68,6 +79,17 @@ function formatData(data) {
     return {
       date: parseDate(item.tran_date),
       amount: item.amount
+    }
+  });
+  dataSet.sort(sortByDates);
+  return dataSet;
+}
+
+function formatState(data) {
+  var dataSet = data.map((item) => {
+    return {
+      date: parseDate(item.tran_date),
+      amount: item.total_out
     }
   });
   dataSet.sort(sortByDates);
@@ -127,7 +149,15 @@ $('#submitFiler')
         return formatData(value)
       })
       .then(value => {
-        return groupByWeeks(value)
+        switch (groupOption) {
+          case 0:
+            return value
+            break;
+          case 1:
+          return groupByWeeks(value)
+          break;
+          default:
+        }
       })
       .then(value => {
         //  value = formatted data
@@ -135,12 +165,48 @@ $('#submitFiler')
         return visualize(value)
       })
   })
+var groupOption = $('#group').val();
+$('#allState')
+  .on('click', (arguments) => {
+    return fetchState()
+      .then(value => {
+        return formatState(value)
+      })
+      .then(value => {
+        switch (groupOption) {
+          case 0:
+            return value
+            break;
+          case 1:
+          return groupByWeeks(value)
+          break;
+          default:
+        }
+      })
+      .then(value => {
+        $('#filerId')
+          .val('');
+        return visualize(value)
+      });
+  })
+
+  $('#options').on('change', (event, index, value) => {
+    var groupBy = $('select option:selected').val();
+    switch (groupBy) {
+      case 'Days':
+      groupOption = 0;
+        break;
+        case 'Weeks':
+        groupOption = 1;
+      default:
+    }
+  });
 
 function initialize(id) {
   console.log('initialized')
-  let url = 'http://54.213.83.132/hackoregon/http/current_candidate_transactions_out/' + id + '/';
+  let url = 'http://54.213.83.132/hackoregon/http/state_sum_by_date/_/';
   d3.json(url, (json) => {
-    let dataSet = formatData(json);
+    let dataSet = groupByWeeks(formatState(json));
     svg.append('path')
       .attr('class', 'line')
       .attr('d', line(dataSet));
@@ -155,7 +221,6 @@ function initialize(id) {
   })
 }
 initialize(931);
-
 var arr = [{
   amount: 1
 }, {
